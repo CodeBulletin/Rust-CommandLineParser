@@ -1,4 +1,4 @@
-pub enum ExpectedVar {
+pub enum CLPExpectedType {
     INT(String),
     UINT(String),
     FLOAT(String),
@@ -8,23 +8,23 @@ pub enum ExpectedVar {
     VECFLOAT(String),
     VECSTRING(String)
 }
-impl std::fmt::Debug for ExpectedVar {
+impl std::fmt::Debug for CLPExpectedType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ExpectedVar::INT(name) => write!(f, "INT({})", name),
-            ExpectedVar::UINT(name) => write!(f, "UINT({})", name),
-            ExpectedVar::FLOAT(name) => write!(f, "FLOAT({})", name),
-            ExpectedVar::STRING(name) => write!(f, "STRING({})", name),
-            ExpectedVar::VECINT(name) => write!(f, "[...INT({})...]", name),
-            ExpectedVar::VECUINT(name) => write!(f, "[...UINT({})...]", name),
-            ExpectedVar::VECFLOAT(name) => write!(f, "[...FLOAT({})...]", name),
-            ExpectedVar::VECSTRING(name) => write!(f, "[...STRING({})...]", name),
+            CLPExpectedType::INT(name) => write!(f, "INT({})", name),
+            CLPExpectedType::UINT(name) => write!(f, "UINT({})", name),
+            CLPExpectedType::FLOAT(name) => write!(f, "FLOAT({})", name),
+            CLPExpectedType::STRING(name) => write!(f, "STRING({})", name),
+            CLPExpectedType::VECINT(name) => write!(f, "[...INT({})...]", name),
+            CLPExpectedType::VECUINT(name) => write!(f, "[...UINT({})...]", name),
+            CLPExpectedType::VECFLOAT(name) => write!(f, "[...FLOAT({})...]", name),
+            CLPExpectedType::VECSTRING(name) => write!(f, "[...STRING({})...]", name),
         }
     }
 }
 
 #[derive(Debug)]
-pub enum OutputVar {
+pub enum CLPOutputType {
     Int(i128),
     UInt(u128),
     Float(f64),

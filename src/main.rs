@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use clparser::{CommandLineParser, KwargSettings, ArgsSetting, KwargType, CLPErrorKind};
-use clparser::ExpectedVar::{INT, FLOAT, UINT, STRING, VECINT, VECUINT};
+use clparser::CLPExpectedType::{INT, FLOAT, UINT, STRING, VECINT, VECUINT, VECSTRING};
 
 fn main() {
     let mut map = HashMap::<String, KwargType>::new();
@@ -18,12 +18,7 @@ fn main() {
     let parser = CommandLineParser {
         allow_more: false,
         args: ArgsSetting::Args(vec![
-            INT("a".to_string()),
-            UINT("b".to_string()),
-            FLOAT("c".to_string()),
-            STRING("d".to_string()),
-            VECINT("e".to_string()),
-            VECUINT("f".to_string()),
+            VECSTRING("X".to_string())
         ]),
         kwargs: KwargSettings {
             keyvalues: map

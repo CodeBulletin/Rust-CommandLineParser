@@ -1,13 +1,13 @@
 mod parser;
 mod variables;
 pub use parser::{CommandLineParser, ArgsSetting, KwargSettings, KwargType};
-pub use variables::{OutputVar, ExpectedVar, CLPErrorKind};
+pub use variables::{CLPOutputType, CLPExpectedType, CLPErrorKind};
 
 #[cfg(test)]
 mod test {
     use crate::{CommandLineParser, ArgsSetting, KwargSettings, KwargType};
-    use crate::{OutputVar, ExpectedVar, CLPErrorKind};
-    use ExpectedVar::{INT, FLOAT, UINT, STRING};
+    use crate::{CLPOutputType, CLPExpectedType, CLPErrorKind};
+    use CLPExpectedType::{INT, FLOAT, UINT, STRING};
 
     #[test]
     #[should_panic]
