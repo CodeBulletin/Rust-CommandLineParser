@@ -227,7 +227,7 @@ impl CommandLineParser {
                         }
                     }
                     else if !toggle && index >= arguments.len() && !self.allow_more {
-                        return Err(CLPErrorKind::Error(format!("Unexpected input {:?}", arg)));
+                        return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
                     }
                     index += 1;
                 }
