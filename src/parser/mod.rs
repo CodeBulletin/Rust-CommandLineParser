@@ -1,12 +1,10 @@
-use core::num;
 use std::{collections::HashMap};
-
-use crate::variables::{CLPExpectedType, CLPOutputType, CLPErrorKind};
+use crate::variables::{CLPExpectedType, CLPOutputType, CLPErrorKind, CLPType};
 
 pub enum ArgsSetting {
     NONE,
-    ALL,
-    Args(Vec<CLPExpectedType>)
+    ALL(CLPType),
+    Args(Vec<CLPType>)
 }
 
 pub enum KwargType {
@@ -24,52 +22,52 @@ pub struct CommandLineParser {
     pub kwargs: KwargSettings
 }
 
-fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars: &mut HashMap<String, CLPOutputType>) -> Option<CLPErrorKind> {
+fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: &mut HashMap<String, CLPOutputType>) -> Option<CLPErrorKind> {
     //todo: parsing for vectors
-    match &arguments[index] {
-        CLPExpectedType::INT(name) => {
+    match &argument {
+        CLPExpectedType::INT => {
             let value: Result<i128, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as integer", arg))); 
             }
             let value = value.unwrap();
             vars.insert(
-                name.clone(),
+                var_name.clone(),
                 CLPOutputType::Int(value)
             );
         },
-        CLPExpectedType::UINT(name) => {
+        CLPExpectedType::UINT => {
             let value: Result<u128, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as unsigned integer", arg))); 
             }
             let value = value.unwrap();
             vars.insert(
-                name.clone(),
+                var_name.clone(),
                 CLPOutputType::UInt(value)
             );
         }
-        CLPExpectedType::FLOAT(name) => {
+        CLPExpectedType::FLOAT => {
             let value: Result<f64, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as float", arg))); 
             }
             let value = value.unwrap();
             vars.insert(
-                name.clone(),
+                var_name.clone(),
                 CLPOutputType::Float(value)
             );
         },
-        CLPExpectedType::STRING(name) => {
+        CLPExpectedType::STRING => {
             vars.insert(
-                name.clone(),
+                var_name.clone(),
                 CLPOutputType::String(arg.clone())
             );
         },
-        CLPExpectedType::VECINT(name) => {
+        CLPExpectedType::VECINT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<i128> = Vec::new();
@@ -81,18 +79,18 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                     v.push(value.unwrap());
                 }
                 vars.insert(
-                    name.clone(),
+                    var_name.clone(),
                     CLPOutputType::VecInt(v)
                 );
             }
             else {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], *arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         },
-        CLPExpectedType::VECUINT(name) => {
+        CLPExpectedType::VECUINT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<u128> = Vec::new();
@@ -104,18 +102,18 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                     v.push(value.unwrap());
                 }
                 vars.insert(
-                    name.clone(),
+                    var_name.clone(),
                     CLPOutputType::VecUInt(v)
                 );
             }
             else {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], *arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         }
-        CLPExpectedType::VECFLOAT(name) => {
+        CLPExpectedType::VECFLOAT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<f64> = Vec::new();
@@ -127,18 +125,18 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                     v.push(value.unwrap());
                 }
                 vars.insert(
-                    name.clone(),
+                    var_name.clone(),
                     CLPOutputType::VecFloat(v)
                 );
             }
             else {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], *arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         }
-        CLPExpectedType::VECSTRING(name) => {
+        CLPExpectedType::VECSTRING => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<String> = Vec::new();
@@ -151,7 +149,7 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                         continue;
                     }
                     if !isfirst && arg.chars().nth(id).unwrap() != ',' {
-                        return Some(CLPErrorKind::ParseError(format!("expected , got {:?} at the end of the argument {}", arg.chars().nth(id).unwrap(), arg)));
+                        return Some(CLPErrorKind::ParseError(format!("expected , got {} at the end of the argument {}", arg.chars().nth(id).unwrap(), arg)));
                     } else if !isfirst {
                         isfirst = true;
                         id += 1;
@@ -159,7 +157,6 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                     }
                     if arg.chars().nth(id).unwrap() == '\'' && isfirst {
                         id += 1;
-                        let mut isopen = true;
                         while id < num_chars - 1 && arg.chars().nth(id).unwrap() != '\'' {
                             if arg.chars().nth(id).unwrap() == '/' {
                                 let next_char = arg.chars().nth(id+1);
@@ -189,12 +186,12 @@ fn match_arg(arguments: &Vec<CLPExpectedType>, index: usize, arg: &String, vars:
                     v.push(string.clone());
                 }
                 vars.insert(
-                    name.clone(),
+                    var_name.clone(),
                     CLPOutputType::VecString(v)
                 );
             }
             else {
-                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", arguments[index], *arg)));
+                return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         }
     }
@@ -221,7 +218,7 @@ impl CommandLineParser {
                         return Err(CLPErrorKind::ArgsError(format!("Expected {:?} got {}", arguments[index], arg)));
                     }
                     else if !toggle && index < arguments.len() {
-                        let result = match_arg(arguments, index, arg, &mut vars);
+                        let result = match_arg(&arguments[index].object_type, &arguments[index].name, arg, &mut vars);
                         if let Some(err) = result {
                             return Err(err);
                         }
@@ -229,10 +226,30 @@ impl CommandLineParser {
                     else if !toggle && index >= arguments.len() && !self.allow_more {
                         return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
                     }
+                    else if toggle {
+                        todo!();
+                    }
                     index += 1;
                 }
                 if index < arguments.len() {
                     return Err(CLPErrorKind::ArgsError(format!("Didn't get input for {:?}", arguments[index])));
+                }
+            }
+            ArgsSetting::ALL(expected) => {
+                let mut index: usize = 0;
+                let mut inlist = true;
+                for arg in iter {
+                    let toggle = self.kwargs.keyvalues.contains_key(arg);
+                    if toggle {
+                        inlist = false;
+                    }
+                    if inlist {
+                        let name = expected.name.clone() + format!("{}", index).as_str();
+                        match_arg(&expected.object_type, &name, arg, &mut vars);
+                    } else {
+                        todo!();
+                    }
+                    index += 1;
                 }
             }
             _ => {}

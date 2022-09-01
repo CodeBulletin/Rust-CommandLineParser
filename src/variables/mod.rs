@@ -1,24 +1,36 @@
-pub enum CLPExpectedType {
-    INT(String),
-    UINT(String),
-    FLOAT(String),
-    STRING(String),
-    VECINT(String),
-    VECUINT(String),
-    VECFLOAT(String),
-    VECSTRING(String)
+pub struct CLPType {
+    pub object_type: CLPExpectedType,
+    pub name: String
 }
+
+impl std::fmt::Debug for CLPType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}({})", self.object_type, self.name)
+    }
+}
+
+pub enum CLPExpectedType {
+    INT,
+    UINT,
+    FLOAT,
+    STRING,
+    VECINT,
+    VECUINT,
+    VECFLOAT,
+    VECSTRING
+}
+
 impl std::fmt::Debug for CLPExpectedType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            CLPExpectedType::INT(name) => write!(f, "INT({})", name),
-            CLPExpectedType::UINT(name) => write!(f, "UINT({})", name),
-            CLPExpectedType::FLOAT(name) => write!(f, "FLOAT({})", name),
-            CLPExpectedType::STRING(name) => write!(f, "STRING({})", name),
-            CLPExpectedType::VECINT(name) => write!(f, "[...INT({})...]", name),
-            CLPExpectedType::VECUINT(name) => write!(f, "[...UINT({})...]", name),
-            CLPExpectedType::VECFLOAT(name) => write!(f, "[...FLOAT({})...]", name),
-            CLPExpectedType::VECSTRING(name) => write!(f, "[...STRING({})...]", name),
+            CLPExpectedType::INT => write!(f, "INT"),
+            CLPExpectedType::UINT => write!(f, "UINT"),
+            CLPExpectedType::FLOAT => write!(f, "FLOAT"),
+            CLPExpectedType::STRING => write!(f, "STRING"),
+            CLPExpectedType::VECINT => write!(f, "[...INT...]"),
+            CLPExpectedType::VECUINT => write!(f, "[...UINT...]"),
+            CLPExpectedType::VECFLOAT => write!(f, "[...FLOAT...]"),
+            CLPExpectedType::VECSTRING => write!(f, "[...STRING...]"),
         }
     }
 }
