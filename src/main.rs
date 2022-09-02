@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use clparser::{CommandLineParser, KwargSettings, ArgsSettings, KwargTypes, CLPErrorKind, CLPInput};
-use clparser::ArgTypes::{STRING};
+use clparser::ArgTypes::{STRING, VECSTRING, VECFLOAT};
 
 fn main() {
     let mut map = HashMap::<String, KwargTypes>::new();
@@ -9,18 +9,25 @@ fn main() {
         "<int>".to_string(),
         "unexpected value {} expected an <int>".to_string()
     ]));
-    let parser = CommandLineParser {
-        allow_more: true,
-        args: ArgsSettings::ALL(
+    let parser = CommandLineParser::new(
+        false,
+        ArgsSettings::Args(vec![
             CLPInput {
                 object_type: STRING,
-                name: "V".to_string()
-            }),
-        kwargs: KwargSettings {
+                name: "int".to_string()
+            },
+            CLPInput {
+                object_type: VECSTRING,
+                name: "int".to_string()
+            },
+            CLPInput {
+                object_type: VECFLOAT,
+                name: "int".to_string()
+            }
+        ]),
+        KwargSettings {
             keyvalues: map
-        }
-    };
-
+        });
     let args: Vec<String> = std::env::args().collect();
     let variables = parser.parse(&args);
 

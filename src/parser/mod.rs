@@ -58,7 +58,8 @@ fn match_arg(argument: &ArgTypes, var_name: &String, arg: &String, vars: &mut Ha
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<i128> = Vec::new();
-                for i in arg[1..num_chars-1].split(",") {
+                let ints: String = arg[1..num_chars-1].split(" ").collect(); 
+                for i in ints.split(",") {
                     let value: Result<i128, _> = i.parse();
                     if let Err(_) = value {
                         return Some(CLPErrorKind::ParseError(format!("Expected INT got {:?} in arg {}", i, arg)));
@@ -81,7 +82,8 @@ fn match_arg(argument: &ArgTypes, var_name: &String, arg: &String, vars: &mut Ha
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<u128> = Vec::new();
-                for i in arg[1..num_chars-1].split(",") {
+                let uints: String = arg[1..num_chars-1].split(" ").collect(); 
+                for i in uints.split(",") {
                     let value: Result<u128, _> = i.parse();
                     if let Err(_) = value {
                         return Some(CLPErrorKind::ParseError(format!("Expected UINT got {:?} in arg {}", i, arg)));
@@ -104,10 +106,11 @@ fn match_arg(argument: &ArgTypes, var_name: &String, arg: &String, vars: &mut Ha
             }
             if arg.chars().nth(0).unwrap() == '[' && arg.chars().nth(num_chars - 1).unwrap() == ']' {
                 let mut v: Vec<f64> = Vec::new();
-                for i in arg[1..num_chars-1].split(",") {
+                let floats: String = arg[1..num_chars-1].split(" ").collect(); 
+                for i in floats.split(",") {
                     let value: Result<f64, _> = i.parse();
                     if let Err(_) = value {
-                        return Some(CLPErrorKind::ParseError(format!("Expected UINT got {:?} in arg {}", i, arg)));
+                        return Some(CLPErrorKind::ParseError(format!("Expected FLOAT got {:?} in arg {}", i, arg)));
                     }
                     v.push(value.unwrap());
                 }
