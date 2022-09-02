@@ -1,31 +1,18 @@
+pub mod types;
+
 use std::{collections::HashMap};
-use crate::variables::{CLPExpectedType, CLPOutputType, CLPErrorKind, CLPType};
-
-pub enum ArgsSetting {
-    NONE,
-    ALL(CLPType),
-    Args(Vec<CLPType>)
-}
-
-pub enum KwargType {
-    Important([String; 3]),
-    Optional([String; 3])
-}
-
-pub struct KwargSettings {
-    pub keyvalues: HashMap<String, KwargType>
-}
+use types::{ArgsSettings, ArgTypes, KwargSettings, CLPResult, CLPVar, CLPErrorKind};
 
 pub struct CommandLineParser {
     pub allow_more: bool,
-    pub args: ArgsSetting,
+    pub args: ArgsSettings,
     pub kwargs: KwargSettings
 }
 
-fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: &mut HashMap<String, CLPOutputType>) -> Option<CLPErrorKind> {
+fn match_arg(argument: &ArgTypes, var_name: &String, arg: &String, vars: &mut HashMap<String, CLPVar>) -> Option<CLPErrorKind> {
     //todo: parsing for vectors
     match &argument {
-        CLPExpectedType::INT => {
+        ArgTypes::INT => {
             let value: Result<i128, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as integer", arg))); 
@@ -33,10 +20,10 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
             let value = value.unwrap();
             vars.insert(
                 var_name.clone(),
-                CLPOutputType::Int(value)
+                CLPVar::Int(value)
             );
         },
-        CLPExpectedType::UINT => {
+        ArgTypes::UINT => {
             let value: Result<u128, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as unsigned integer", arg))); 
@@ -44,10 +31,10 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
             let value = value.unwrap();
             vars.insert(
                 var_name.clone(),
-                CLPOutputType::UInt(value)
+                CLPVar::UInt(value)
             );
         }
-        CLPExpectedType::FLOAT => {
+        ArgTypes::FLOAT => {
             let value: Result<f64, _> = arg.parse();
             if let Err(_) = value {
                 return Some(CLPErrorKind::ParseError(format!("unable to parse {:?} as float", arg))); 
@@ -55,16 +42,16 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
             let value = value.unwrap();
             vars.insert(
                 var_name.clone(),
-                CLPOutputType::Float(value)
+                CLPVar::Float(value)
             );
         },
-        CLPExpectedType::STRING => {
+        ArgTypes::STRING => {
             vars.insert(
                 var_name.clone(),
-                CLPOutputType::String(arg.clone())
+                CLPVar::String(arg.clone())
             );
         },
-        CLPExpectedType::VECINT => {
+        ArgTypes::VECINT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
@@ -80,14 +67,14 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
                 }
                 vars.insert(
                     var_name.clone(),
-                    CLPOutputType::VecInt(v)
+                    CLPVar::VecInt(v)
                 );
             }
             else {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         },
-        CLPExpectedType::VECUINT => {
+        ArgTypes::VECUINT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
@@ -103,14 +90,14 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
                 }
                 vars.insert(
                     var_name.clone(),
-                    CLPOutputType::VecUInt(v)
+                    CLPVar::VecUInt(v)
                 );
             }
             else {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         }
-        CLPExpectedType::VECFLOAT => {
+        ArgTypes::VECFLOAT => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
@@ -126,14 +113,14 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
                 }
                 vars.insert(
                     var_name.clone(),
-                    CLPOutputType::VecFloat(v)
+                    CLPVar::VecFloat(v)
                 );
             }
             else {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, *arg)));
             }
         }
-        CLPExpectedType::VECSTRING => {
+        ArgTypes::VECSTRING => {
             let num_chars = arg.chars().count();
             if num_chars < 2 {
                 return Some(CLPErrorKind::ArgsError(format!("Expected {:?} got {:?}", argument, arg)));
@@ -187,7 +174,7 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
                 }
                 vars.insert(
                     var_name.clone(),
-                    CLPOutputType::VecString(v)
+                    CLPVar::VecString(v)
                 );
             }
             else {
@@ -198,36 +185,47 @@ fn match_arg(argument: &CLPExpectedType, var_name: &String, arg: &String, vars: 
     return None;
 }
 
+
+
 impl CommandLineParser {
-    pub fn parse(&self, args: &Vec<String>) -> Result<HashMap<String, CLPOutputType>, CLPErrorKind> {
-        let mut vars: HashMap<String, CLPOutputType> = HashMap::new();
-
+    pub fn new(allow_more: bool, args: ArgsSettings, kwargs:KwargSettings) -> CommandLineParser {
+        CommandLineParser {
+            allow_more,
+            args,
+            kwargs
+        }
+    }
+    pub fn parse(&self, args: &Vec<String>) -> Result<CLPResult, CLPErrorKind> {
+            
         let mut iter = args.iter();
-
-        vars.insert(
-            "SELF".to_string(),
-            CLPOutputType::String(iter.next().unwrap().clone())
-        );
+            
+        let mut vars: HashMap<String, CLPVar> = HashMap::new();
+        let mut default: Vec<String> = Vec::new();
+        let arg0 = iter.next().unwrap().clone(); 
+        let get_default = self.allow_more;
 
         match &self.args {
-            ArgsSetting::Args(arguments) => {
+            ArgsSettings::Args(arguments) => {
                 let mut index: usize = 0;
-                for arg in iter {
+                while let Some(arg) = iter.next() {
                     let toggle = self.kwargs.keyvalues.contains_key(arg);
-                    if toggle && index < arguments.len() {
-                        return Err(CLPErrorKind::ArgsError(format!("Expected {:?} got {}", arguments[index], arg)));
-                    }
-                    else if !toggle && index < arguments.len() {
-                        let result = match_arg(&arguments[index].object_type, &arguments[index].name, arg, &mut vars);
-                        if let Some(err) = result {
-                            return Err(err);
+                    if toggle {
+                        if index < arguments.len() {
+                            return Err(CLPErrorKind::ArgsError(format!("Expected {:?} got {}", arguments[index], arg)));
+                        } else {
+                            todo!()
                         }
-                    }
-                    else if !toggle && index >= arguments.len() && !self.allow_more {
-                        return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
-                    }
-                    else if toggle {
-                        todo!();
+                    } else {
+                        if index < arguments.len() {
+                            let result = match_arg(&arguments[index].object_type, &arguments[index].name, arg, &mut vars);
+                            if let Some(err) = result {
+                                return Err(err);
+                            }
+                        } else if get_default {
+                            default.push(arg.clone());
+                        } else {
+                            return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
+                        }
                     }
                     index += 1;
                 }
@@ -235,7 +233,7 @@ impl CommandLineParser {
                     return Err(CLPErrorKind::ArgsError(format!("Didn't get input for {:?}", arguments[index])));
                 }
             }
-            ArgsSetting::ALL(expected) => {
+            ArgsSettings::ALL(expected) => {
                 let mut index: usize = 0;
                 let mut inlist = true;
                 for arg in iter {
@@ -245,16 +243,42 @@ impl CommandLineParser {
                     }
                     if inlist {
                         let name = expected.name.clone() + format!("{}", index).as_str();
-                        match_arg(&expected.object_type, &name, arg, &mut vars);
+                        let result = match_arg(&expected.object_type, &name, arg, &mut vars);
+                        if let Some(err) = result {
+                            return Err(err);
+                        }
                     } else {
-                        todo!();
+                        if !toggle && get_default {
+                            default.push(arg.clone());
+                        } else if !toggle {
+                            return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
+                        } else {
+                            todo!();
+                        }
                     }
                     index += 1;
                 }
+            },
+            ArgsSettings::NONE => {
+                while let Some(arg) = iter.next() {
+                    let toggle = self.kwargs.keyvalues.contains_key(arg);
+                    if toggle {
+                        todo!();
+                    } else {
+                        if get_default {
+                            default.push(arg.clone());
+                        } else {
+                            return Err(CLPErrorKind::Error(format!("Unexpected input {}", arg)));
+                        }
+                    }
+                }
             }
-            _ => {}
         }
 
-        return Ok(vars);
+        return Ok(CLPResult {
+            arg0,
+            default,
+            args: vars
+        });
     }
 }
